@@ -1879,41 +1879,30 @@ def health():
     return jsonify({"status": "ok", "app": "Imafia API"}), 200
 
 
+
 # ============================================================
 # INIT
 # ============================================================
 
- with app.app_context():
-        try:
-            db.create_all()
-            print("✅ Tables créées/vérifiées")
-            
-            from sqlalchemy import inspect
-            inspector = inspect(db.engine)
-            tables = inspector.get_table_names()
-            print(f"📋 Tables: {tables}")
-            
-            # Vérifier si le modèle Favorite existe
-            if 'favorite' not in tables:
-                print("ℹ️ Table Favorite à créer")
-            
-            admin = User.query.filter_by(telephone="0710069791").first()
-            if not admin:
-                admin = User(
-                    telephone="0710069791",
-                    full_name="Admin Imafia",
-                    role="seller",
-                    account_status="active",
-                )
-                admin.set_password("admin123")
-                db.session.add(admin)
-                db.session.commit()
-                print("✅ Admin créé (tel: 0710069791, mdp: admin123)")
-                
-        except Exception as e:
-            print(f"❌ Erreur d'initialisation: {e}")
-    
+with app.app_context():
+    try:
+        db.create_all()
+        app.logger.info("Tables créées ou vérifiées.")
+
+        from sqlalchemy import inspect
+        inspector = inspect(db.engine)
+        tables = inspector.get_table_names()
+        app.logger.info("Tables PostgreSQL : %s", tables)
+
+    except Exception:
+        app.logger.exception("Erreur d'initialisation de la base de données")
+        raise
+
+
 if __name__ == "__main__":
-   
     port = int(os.environ.get("PORT", 5000))
-    app.run(debug=False, host="0.0.0.0", port=port)
+    app.run(
+        debug=False,
+        host="0.0.0.0",
+        port=port
+    )
